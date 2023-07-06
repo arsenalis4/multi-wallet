@@ -52,15 +52,17 @@ function App() {
       // Token History API 인스턴스 생성  
       const tokenHistory = caver.kas.tokenHistory
 
-      tokenHistory.getContractListByOwner("0xae91e781cc56694dc3aa66717784739b7f48d77d").then((res)=>{
+      // 토큰 내역 조회
+      tokenHistory.getContractListByOwner("0x9f8a222fd0b75239b32aa8a97c30669e5981db05").then((res)=>{
         console.log(res.items);
         const testItem = res.items[0];
         const testAddress = testItem.contractAddress;
-        console.log(testAddress);
-        caver.kas.kip7.balance(testAddress, "0xae91e781cc56694dc3aa66717784739b7f48d77d").then((res)=>{
-          console.log(res);
-        });
+        caver.kas.kip7.balance(testAddress, "0x9f8a222fd0b75239b32aa8a97c30669e5981db05").then((res)=>{
+          console.log(res.balance);
+        })
       });
+
+      console.log(tokenHistory.getTransferHistory);
     }   
   }, [kaikas, address]);
 
