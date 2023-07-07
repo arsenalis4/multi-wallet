@@ -69,9 +69,9 @@ function App() {
       });
 
       // 예치풀 조회
-      const lpAddress = "0x97b4e13114ce2c9bf289be1ffd1268be5b2ed7c2";
+      const lpTokenAddress = "0x97b4e13114ce2c9bf289be1ffd1268be5b2ed7c2";
       const testAddress = "0x16c2b38fb969589b208fbff106d1cfd3908f6e6b";
-      const lpContract = new caver.contract(kaikas.klay.KIP7.abi, lpAddress);
+      const lpContract = new caver.contract(kaikas.klay.KIP7.abi, lpTokenAddress);
       lpContract.methods.balanceOf(testAddress).call().then((balance) => {
         console.log(balance);
       });
