@@ -6,6 +6,7 @@ function App() {
   const [kaikas, setKaikas] = useState(null); // kaikas 객체
   const [address, setAddress] = useState(""); // kaikas 계정 주소
   const [balance, setBalance] = useState(""); // kaikas 계정 잔액
+  const [tokens, setTokens] = useState([]); // kaikas 토큰 분포
 
   useEffect(() => {
     // kaikas-extension이 설치되어 있는지 확인
@@ -41,8 +42,8 @@ function App() {
       });
 
       // KAS 접속 정보 설정
-      const accessKeyId = "KASKDL78X89NP2WTBUAB5FVL" // KAS 콘솔에서 발급받은 access key id
-      const secretAccessKey = "zZ-K4jWQtS9bfUhMJa92bQyxb7SM3m4pE9GZu9kD" // KAS 콘솔에서 발급받은 secret access key
+      const accessKeyId = "KASK2U8TSYABXYY6NZYAEN0F" // KAS 콘솔에서 발급받은 access key id
+      const secretAccessKey = "JWvA6UoIsnQaj8C0dwo-oVmyF1rkD5ozLOYTuVq9" // KAS 콘솔에서 발급받은 secret access key
       const chainId = 8217 // 메인넷의 chain id
 
       // caver 인스턴스 생성
@@ -50,20 +51,39 @@ function App() {
       caver.initKASAPI(chainId, accessKeyId, secretAccessKey);
 
       // Token History API 인스턴스 생성  
-      const tokenHistory = caver.kas.tokenHistory
+      const tokenHistory = caver.kas.tokenHistory;
 
-      // 토큰 내역 조회
-      tokenHistory.getContractListByOwner("0x9f8a222fd0b75239b32aa8a97c30669e5981db05").then((res)=>{
-        console.log(res.items);
-        const testItem = res.items[0];
-        const testAddress = testItem.contractAddress;
-        caver.kas.kip7.balance(testAddress, "0x9f8a222fd0b75239b32aa8a97c30669e5981db05").then((res)=>{
-          console.log(res.balance);
-        })
+      // 토큰 분포 조회
+      tokenHistory.getContractListByOwner("0xfc596280cabe3d7adbdd3cc19aa6d7fe9120c462").then((res)=>{
+        const items = res.items;
+        console.log(items);
+        items.forEach((item)=>{
+          const tokenAddress = item.contractAddress;
+          const symbol = item.extras.symbol;
+          const tokens = [];
+          const kip7Contract = new caver.contract(kaikas.klay.KIP7.abi, tokenAddress);
+          kip7Contract.methods.balanceOf(address).call().then((balance) => {
+            setTokens([...tokens, {symbol: symbol, balance: balance}]);
+          });
+        });
       });
 
-      console.log(tokenHistory.getTransferHistory);
-    }   
+      // 예치풀 조회
+      const lpAddress = "0x97b4e13114ce2c9bf289be1ffd1268be5b2ed7c2";
+      const testAddress = "0x16c2b38fb969589b208fbff106d1cfd3908f6e6b";
+      const lpContract = new caver.contract(kaikas.klay.KIP7.abi, lpAddress);
+      lpContract.methods.balanceOf(testAddress).call().then((balance) => {
+        console.log(balance);
+      });
+
+      // 내 지갑의 거래 내역 조회
+      tokenHistory.getTransferHistoryByAccount("0xfc596280cabe3d7adbdd3cc19aa6d7fe9120c462").then((res) => {
+        const items = res.items;
+        items.forEach((item) => {
+          console.log(item);
+        });
+      });
+    }
   }, [kaikas, address]);
 
   return (
@@ -71,6 +91,8 @@ function App() {
       <h1>Kaikas Example</h1>
       <p>Account: {address}</p>
       <p>Balance: {balance} KLAY</p>
+      <p>Token Symbol: {tokens[0] && tokens[0].symbol}</p>
+      <p>Token Price: {tokens[0] && tokens[0].balance}</p>
     </div>
   );
 }
